@@ -13,7 +13,7 @@ from datetime import datetime
 from django.db import transaction
 
 from .models import Customer, Deal, Gem
-from .serializers import CustomerSerializer, CSVFileSerializer  # , DealSerializer
+from .serializers import CustomerSerializer, CSVFileSerializer
 
 CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 

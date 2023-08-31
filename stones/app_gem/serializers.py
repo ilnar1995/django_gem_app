@@ -18,14 +18,6 @@ class CSVFileSerializer(serializers.Serializer):
         return value
 
 
-class GemSerializer(serializers.ModelSerializer):
-    """ Gem serializer """
-
-    class Meta:
-        model = Gem
-        fields = ('name',)
-
-
 class CustomerSerializer(serializers.ModelSerializer):
     """ Customer serializer """
 
