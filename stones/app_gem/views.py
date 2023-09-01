@@ -5,7 +5,7 @@ from django.db.models import Sum
 from django.core.cache import cache
 from django.conf import settings
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
-from rest_framework import status, views
+from rest_framework import status, generics
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
@@ -18,10 +18,10 @@ from .serializers import CustomerSerializer, CSVFileSerializer
 CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 
 
-class UploadDealsListCustomerAPIView(views.APIView):
+class UploadDealsListCustomerAPIView(generics.GenericAPIView):
     parser_classes = [MultiPartParser]
     queryset = Customer.objects.all().prefetch_related('deals', 'deals__item')
-    serializer_class = CSVFileSerializer
+    serializer_class = CustomerSerializer
 
     def get_queryset(self):
         return self.queryset.annotate(
@@ -69,12 +69,11 @@ class UploadDealsListCustomerAPIView(views.APIView):
         200: CustomerSerializer,
     }, )
     def get(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
         customers_cache = cache.get('customers_cache')
         if not customers_cache:
-            serializer = CustomerSerializer(self.get_queryset(), many=True)
-            data = {
-                'response': serializer.data
-            }
+            serializer = self.get_serializer(queryset, many=True)
+            data = {'response': serializer.data}
             cache.set('customers_cache', data, CACHE_TTL)
             return Response(data, status.HTTP_200_OK)
         return Response(customers_cache, status.HTTP_200_OK)
