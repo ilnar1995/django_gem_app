@@ -8,7 +8,7 @@ from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from rest_framework import status, generics
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 from datetime import datetime
 from django.db import transaction
 
@@ -28,7 +28,9 @@ class UploadDealsListCustomerAPIView(generics.GenericAPIView):
             spent_money=Sum('deals__total')
         ).order_by('-spent_money')[:5]
 
-    @extend_schema(request=CSVFileSerializer)
+    @extend_schema(request=CSVFileSerializer, responses={
+        200: OpenApiResponse(description='{"status": "OK"}'),
+    })
     def post(self, request, *args, **kwargs):
         serializer = CSVFileSerializer(data=request.data)
         if serializer.is_valid():
@@ -65,9 +67,6 @@ class UploadDealsListCustomerAPIView(generics.GenericAPIView):
             return Response({'Status': 'Error: file contain wrong data, make sure file is correct'},
                             status.HTTP_400_BAD_REQUEST)
 
-    @extend_schema(responses={
-        200: CustomerSerializer,
-    }, )
     def get(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         customers_cache = cache.get('customers_cache')
